@@ -1,6 +1,6 @@
 # Predicting Smartphone Addiction
 
-This repository contains my code and analysis for the [Predicting Smartphone Addiction]([https://www.kaggle.com/competitions/predicting-smartphone-addiction](https://www.kaggle.com/competitions/playground-series-s6e8/overview)) Kaggle competition.
+This repository contains my code and analysis for the [Predicting Smartphone Addiction](https://www.kaggle.com/competitions/playground-series-s6e8/overview) Kaggle competition.
 
 ## Dataset
 
