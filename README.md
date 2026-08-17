@@ -73,4 +73,41 @@ Attempt 2 enhances the baseline model by introducing domain-specific feature eng
 - Fold 5 ROC-AUC: 0.963424
 - **Overall Out-Of-Fold (OOF) ROC-AUC Score: 0.963613**
 
+### Attempt 3: Histogram XGBoost Classifier
+
+Notebook: `Notebooks/XGBoostClassifier.ipynb`
+
+#### Overview
+Attempt 3 introduces model diversity by training an XGBoost Classifier (`XGBClassifier`) using the histogram-based tree building method (`tree_method='hist'`) and native categorical feature support on the exact 33-feature set engineered in Attempt 2 with the identical 5-Fold Stratified Cross-Validation split (seed=42).
+
+#### Data & Feature Summary
+- Total Features: 33 features (12 base features + 21 engineered features matching Attempt 2)
+- Feature Set Included: Time ratios, sleep/screen rhythm metrics, phone interaction densities, quantile age binning (`age_group`), and group mean/std aggregations by `stress_level` and `age_group`.
+
+#### Preprocessing & Categorical Handling
+- Categorical Features: `gender`, `stress_level`, `academic_work_impact`, `age_group`
+- Encoding Strategy: Converted to pandas `category` data types for native XGBoost categorical split searching (`enable_categorical=True`).
+- Inf Handling: Zero-division `inf` values replaced with `np.nan` (handled natively by XGBoost).
+
+#### Training Configuration
+- Model: `xgb.XGBClassifier`
+- Tree Method: `hist` (Histogram-based tree algorithm)
+- Evaluation Metric: `auc`
+- Hyperparameters: `n_estimators=2000`, `learning_rate=0.03`, `max_depth=6`, `subsample=0.8`, `colsample_bytree=0.8`, `enable_categorical=True`, `random_state=42`
+- Early Stopping: 50 rounds on validation set
+
+#### Validation Results
+- Fold 1 ROC-AUC: 0.963264
+- Fold 2 ROC-AUC: 0.963802
+- Fold 3 ROC-AUC: 0.964093
+- Fold 4 ROC-AUC: 0.964710
+- Fold 5 ROC-AUC: 0.963668
+- **Overall Out-Of-Fold (OOF) ROC-AUC Score: 0.963906**
+
+#### Generated Artifacts
+- Out-Of-Fold Predictions: `Data/Processed/oof_xgb_attempt3.npy`
+- Test Set Predictions: `Data/Processed/test_xgb_attempt3.npy`
+- Submission File: `Data/Processed/submission_attempt3_xgb.csv`
+
+
 
