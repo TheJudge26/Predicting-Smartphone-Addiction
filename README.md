@@ -109,5 +109,26 @@ Attempt 3 introduces model diversity by training an XGBoost Classifier (`XGBClas
 - Test Set Predictions: `Data/Processed/test_xgb_attempt3.npy`
 - Submission File: `Data/Processed/submission_attempt3_xgb.csv`
 
+### Attempt 4: Model Blending & Ensembling (LightGBM + XGBoost)
 
+Notebook: `Notebooks/Blending.ipynb`
 
+#### Overview
+Attempt 4 combines the Out-Of-Fold (OOF) validation predictions and test predictions from Attempt 2 (LightGBM Classifier) and Attempt 3 (Histogram XGBoost Classifier) using Weighted Probability Blending and Percentile Rank Averaging to optimize local CV ROC-AUC and minimize prediction variance.
+
+#### Methodology & Blending Techniques
+- **Input Models**: Attempt 2 (LightGBM, OOF ROC-AUC: 0.963613) and Attempt 3 (XGBoost, OOF ROC-AUC: 0.963906).
+- **Prediction Correlation Analysis**: Evaluated Pearson correlation coefficient ($r$) between model prediction vectors to measure ensembling diversity.
+- **Weighted Probability Blending**:
+  - Optimized blending weight $w^* \in [0.0, 1.0]$ via SciPy Nelder-Mead optimization (`scipy.optimize.minimize`) on the objective function:
+    $$\text{Blend OOF} = w \cdot \text{OOF}_{\text{LGB}} + (1 - w) \cdot \text{OOF}_{\text{XGB}}$$
+  - Cross-verified with a 101-step grid search over $w \in [0.0, 1.0]$.
+- **Percentile Rank Averaging**:
+  - Normalized predictions using uniform percentile ranks (`scipy.stats.rankdata`):
+    $$\text{Rank Blend} = w^* \cdot \text{Rank}(\text{LGB}) + (1 - w^*) \cdot \text{Rank}(\text{XGB})$$
+  - Handled probability calibration differences between LightGBM and XGBoost tree outputs.
+
+#### Generated Artifacts & Submission
+- **Final Submission File**: `Data/Processed/submission_attempt4_blend.csv`
+- **Submission Dimensions**: 296,302 rows, 2 columns (`id`, `addicted_label`)
+- **Integrity Verification**: 0 missing values, probability values strictly bounded within $[0.0, 1.0]$.
