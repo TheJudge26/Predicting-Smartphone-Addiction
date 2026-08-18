@@ -132,3 +132,40 @@ Attempt 4 combines the Out-Of-Fold (OOF) validation predictions and test predict
 - **Final Submission File**: `Data/Processed/submission_attempt4_blend.csv`
 - **Submission Dimensions**: 296,302 rows, 2 columns (`id`, `addicted_label`)
 - **Integrity Verification**: 0 missing values, probability values strictly bounded within $[0.0, 1.0]$.
+
+### Attempt 5: Master Blend (Supercharged Features + 3-Way Tri-Model Ensemble)
+
+Notebook: `Notebooks/Blending2.ipynb`
+
+#### Overview
+Attempt 5 supercharges our feature engineering pipeline with frequency encodings, stress/work group deviations, and log transformations, retrains LightGBM and XGBoost, introduces Model Family #3 (CatBoost Classifier), and performs a 3-Way SLSQP Optimal Weight Optimization to maximize out-of-fold ROC-AUC.
+
+#### Data & Feature Upgrades Summary
+- **Total Features:** 36 features (12 base features + 24 engineered features)
+- **New Feature Additions:**
+  - **Frequency (Count) Encoding:** `count_age`, `count_notifications`, `count_app_opens`, `count_screen_time`
+  - **Group Aggregations & Stress Deviations:** Mean/std of `daily_screen_time_hours` grouped by `(stress_level, academic_work_impact)`, individual stress deviation (`daily_screen_time_hours - mean_screen_time_by_stress`), and mean/std of `notifications_per_day` grouped by `age_group`.
+  - **Log Transformations:** `log_notifications` ($\log(1 + \text{notifications\_per\_day})$), `log_app_opens` ($\log(1 + \text{app\_opens\_per\_day})$).
+
+#### Preprocessing & Categorical Handling
+- Categorical Features: `gender`, `stress_level`, `academic_work_impact`, `age_group`
+- Encoding Strategy: Converted to string-backed pandas `category` data types (`.astype(str).astype('category')`) for 100% cross-framework compatibility across LightGBM, XGBoost, and CatBoost.
+- Inf Handling: Infinite values from ratio zero-divisions replaced with `np.nan`.
+
+#### Single Model Validation Results (5-Fold Stratified CV, SEED=42)
+- **LightGBM Classifier:** 5-Fold OOF ROC-AUC = **0.964637** (Up from 0.963613 in Attempt 2!)
+- **Histogram XGBoost Classifier:** 5-Fold OOF ROC-AUC = **0.965059** (Up from 0.963906 in Attempt 3!)
+- **CatBoost Classifier:** 5-Fold OOF ROC-AUC = **0.963231**
+
+#### 3-Way Ensembling & Weight Optimization (SciPy SLSQP)
+- **Pearson Correlation Analysis:** High diversity confirmed across prediction vectors ($r_{\text{LGB,XGB}} = 0.99641$, $r_{\text{LGB,CAT}} = 0.99339$, $r_{\text{XGB,CAT}} = 0.99440$).
+- **Optimal Weight Solution:** $[w_{\text{LGB}} = 0.3329, w_{\text{XGB}} = 0.3342, w_{\text{CAT}} = 0.3329]$
+- **3-Way Weighted Probability Blend OOF ROC-AUC:** **0.964840**
+- **3-Way Percentile Rank Averaging OOF ROC-AUC:** **0.964829**
+
+#### Generated Artifacts & Submission
+- **Out-Of-Fold Predictions:** `Data/Processed/oof_lgb_attempt5.npy`, `Data/Processed/oof_xgb_attempt5.npy`, `Data/Processed/oof_cat_attempt5.npy`
+- **Test Set Predictions:** `Data/Processed/test_lgb_attempt5.npy`, `Data/Processed/test_xgb_attempt5.npy`, `Data/Processed/test_cat_attempt5.npy`
+- **Final Submission File:** `submissions/submission_attempt5_master_blend.csv` (and `Data/Processed/submission_attempt5_master_blend.csv`)
+- **Submission Dimensions:** 296,302 rows, 2 columns (`id`, `addicted_label`)
+- **Integrity Verification:** 0 missing values, probability values strictly bounded within $[0.0, 1.0]$.
